@@ -1,0 +1,8 @@
+#include <ESP8266WiFi.h>            // добавьте здесь свою плату #include...
+void setup() {
+  WiFi.mode(WIFI_AP);
+  WiFi.softAP("testWifi"); // название вайфая
+}
+
+void loop() {
+}
