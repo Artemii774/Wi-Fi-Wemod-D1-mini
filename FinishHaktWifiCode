@@ -1,0 +1,173 @@
+#include <ESP8266WiFi.h>
+#include <DNSServer.h>
+#include <ESP8266WebServer.h>
+
+const byte DNS_PORT = 53;
+IPAddress apIP(192, 168, 4, 1);
+DNSServer dnsServer;
+ESP8266WebServer server(80);
+
+void setup() {
+  WiFi.softAPConfig(apIP, apIP, IPAddress(255, 255, 255, 0));
+  WiFi.mode(WIFI_AP);
+  WiFi.softAP("HaktWifi");
+
+  dnsServer.start(DNS_PORT, "*", apIP);
+
+  server.onNotFound([]() {
+    server.send(200, "text/html", R"rawliteral(
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ВЗЛОМАНО</title>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      width: 100%;
+      background-color: black;
+      overflow: hidden;
+    }
+    #screen {
+      height: 100%;
+      width: 100%;
+      background-size: cover;
+      background-position: center;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      color: red;
+      font-family: monospace;
+      font-size: 22px;
+      text-align: center;
+      padding: 20px;
+    }
+    #text {
+      white-space: pre-wrap;
+    }
+    #hamster {
+      display: none;
+      width: 200px;
+      height: 200px;
+      transition: transform 0.2s linear;
+    }
+  </style>
+</head>
+<body>
+  <div id="screen">
+    <img id="img" src="" style="max-width: 80%; max-height: 60%; display:none;">
+    <div id="text"></div>
+    <img id="hamster" src="https://i.imgur.com/WGy4qYR.png">
+  </div>
+
+  <script>
+    const images = [
+      "https://i.imgur.com/EuF7NnG.jpg", // хакер
+      "https://i.imgur.com/lKTf2vV.jpg", // взлом
+      "https://i.imgur.com/d14jOwL.jpg" // разбитый телефон
+    ];
+
+    const messages = [
+      "[✔] Подключение к устройству...",
+      "[✔] Доступ к файловой системе...",
+      "[✔] WhatsApp удалён",
+      "[✔] Галерея стерта",
+      "[✔] Instagram удалён",
+      "[!] Обнаружено вторжение",
+      "[!] SYSTEM HACK INITIATED",
+      "[!] Стирание системных данных...",
+      "[!] Камера активирована...",
+      "[!] Отправка координат...",
+      "[X] ВЗЛОМ ЗАВЕРШЕН. УСТРОЙСТВО КОНТРОЛИРУЕТСЯ."
+    ];
+
+    let img = document.getElementById("img");
+    let text = document.getElementById("text");
+    let screen = document.getElementById("screen");
+    let hamster = document.getElementById("hamster");
+
+    let i = 0;
+
+    function nextStep() {
+      if (i < images.length) {
+        img.src = images[i];
+        img.style.display = "block";
+        text.innerText = "";
+        i++;
+        setTimeout(nextStep, 2000);
+      } else {
+        img.style.display = "none";
+        showMessages(0);
+      }
+    }
+
+    function showMessages(j) {
+      if (j < messages.length) {
+        text.innerText += messages[j] + "\\n";
+        j++;
+        setTimeout(() => showMessages(j), 1300);
+      } else {
+        startColorChaos();
+      }
+    }
+
+    function startColorChaos() {
+      text.innerText = "";
+      let chaosColors = ["#ff0000", "#00ff00", "#0000ff", "#ffff00", "#ff00ff", "#00ffff", "#ffffff"];
+      let count = 0;
+      let interval = setInterval(() => {
+        screen.style.backgroundColor = chaosColors[Math.floor(Math.random() * chaosColors.length)];
+        screen.style.color = chaosColors[Math.floor(Math.random() * chaosColors.length)];
+        text.innerText = "СИСТЕМА РАЗРУШЕНА\n\n[!!!] Телефон полностью уничтожен";
+        count++;
+        if (count > 30) {
+          clearInterval(interval);
+          screen.style.backgroundColor = "black";
+          text.innerText = "";
+          showHamster();
+        }
+      }, 100);                                                                              // вы можете добавить любые эффекты написал на HTML страницу, это пример
+    }
+
+    function showHamster() {
+      hamster.style.display = "block";
+      let angle = 0;
+      let delay = 300;
+      let count = 0;
+      let rotateInterval = setInterval(() => {
+        angle += 90;
+        hamster.style.transform = "rotate(" + angle + "deg)";
+        count++;
+        delay *= 0.85;
+        if (delay < 30) delay = 30;
+        if (count > 30) {
+          clearInterval(rotateInterval);
+          hamster.style.transform = "rotate(0deg)";
+        } else {
+          clearInterval(rotateInterval);
+          rotateInterval = setInterval(() => {
+            angle += 90;
+            hamster.style.transform = "rotate(" + angle + "deg)";
+          }, delay);
+        }
+      }, delay);
+    }
+
+    window.onload = nextStep;
+  </script>
+</body>
+</html>
+    )rawliteral");
+  });
+
+  server.begin();
+}
+
+void loop() {
+  dnsServer.processNextRequest();
+  server.handleClient();
+}
